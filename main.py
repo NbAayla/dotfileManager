@@ -48,7 +48,32 @@ def validate_config(path):
         exit(1)
     # Attempt to open the file as YAML
     with open(path, "r") as inputFile:
-        yamlContent = yaml.load(inputFile, Loader=yaml.FullLoader)
-    print(yamlContent)
-    
-validate_config("test.yaml")
+        yaml_content = yaml.load(inputFile, Loader=yaml.FullLoader)
+    # TODO: Validate contents
+    print(yaml_content)
+    return True
+
+
+def clone_file(src, dest):
+    """
+    Clone a file from src to dest
+    Arguments:
+    - src: Source file to copy
+    - dest: Destination to copy file to
+    Returns: None
+    """
+    # Ensure the source path exists
+    if not os.path.exists(src):
+        print(f"Source file does not exist {src} -> {dest}")
+        exit(1)
+    # Create the destination path if needed
+    if not os.path.exists(os.path.dirname(os.path.realpath(dest))):
+        os.makedirs(os.path.dirname(os.path.realpath(dest)))
+    # Copy the file contents
+    with open(src, "rb") as source_file:
+        with open(dest, "wb") as dest_file:
+            dest_file.write(
+                source_file.read()
+            )
+
+clone_file("test.yaml", "output_test.yaml")
