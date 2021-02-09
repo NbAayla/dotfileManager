@@ -67,6 +67,7 @@ def clone_file(src, dest):
         print(f"Source file does not exist {src} -> {dest}")
         exit(1)
     # Create the destination path if needed
+    # TODO: This code is cludgy. Fix it.
     if not os.path.exists(os.path.dirname(os.path.realpath(dest))):
         os.makedirs(os.path.dirname(os.path.realpath(dest)))
     # Copy the file contents
@@ -76,4 +77,3 @@ def clone_file(src, dest):
                 source_file.read()
             )
 
-clone_file("test.yaml", "output_test.yaml")
