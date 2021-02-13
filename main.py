@@ -99,6 +99,8 @@ def clone_file(src, dest):
     if not os.path.exists(destination_path):
         os.makedirs(destination_path)
     # Copy the file contents
+    src = resolve_home_dir(src)
+    dest = resolve_home_dir(os.path.join(destination_path, dest))
     with open(src, "rb") as source_file:
         with open(dest, "wb") as dest_file:
             dest_file.write(
