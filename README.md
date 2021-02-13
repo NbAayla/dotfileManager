@@ -1,5 +1,5 @@
-[![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-yellow.svg)](https://opensource.org/licenses/)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/NbAayla/dotfileManager)
+[![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-yellow.svg?style=flat-square)](https://opensource.org/licenses/)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/NbAayla/dotfileManager?style=flat-square)
 # dotfileManager
 A program I mage to manage my dotfiles after being dissatisfied with how much other managers were doing and being annoyed that they left artifacts in the dotfile repository.
 # Usage
