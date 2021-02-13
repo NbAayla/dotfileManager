@@ -26,10 +26,10 @@ parser.add_argument("--verbose", "-v", help="Increase output verbosity")
 subparsers = parser.add_subparsers(dest="subparser_name", required=True)
 # Arguments for "run" subcommand
 run_subparser = subparsers.add_parser("run")
-run_subparser.add_argument("config", default="~/.manager_config", help="Configuration file to execute")
+run_subparser.add_argument("--config", "-c", default="~/.manager_config", help="Configuration file to execute")
 # Arguments for "validate" subcommand
 validate_subparser = subparsers.add_parser("validate")
-validate_subparser.add_argument("config", default="~/.manager_config", help="Configuration file to execute")
+validate_subparser.add_argument("--config", "-c", default="~/.manager_config", help="Configuration file to execute")
 arguments = parser.parse_args()
 
 
