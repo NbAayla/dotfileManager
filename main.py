@@ -44,7 +44,7 @@ def resolve_home_dir(path):
         return path.replace("~", os.environ["HOME"])
     else:
         print("FATAL: Environment variable \"HOME\" is not defined.")
-        return False
+        exit(2)
 
 
 def validate_config(path):
