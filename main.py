@@ -21,14 +21,30 @@ import os
 
 
 # Set up argument parsing
-# parser = argparse.ArgumentParser()
-# parser.add_argument("--verbose", "-v", help="Increase output verbosity")
-# subparsers = parser.add_subparsers(dest="subparser_name", required=True)
-# # Arguments for "run" subcommand
-# run_subparser = subparsers.add_subparser(dest="run")
-# run_subparser.add_argument("config", default="~/.manager_config")
-# # Arguments for "validate" subcommand
-# validate_subparser = subparsers.add_subparsers(dest="validate")
+parser = argparse.ArgumentParser()
+parser.add_argument("--verbose", "-v", help="Increase output verbosity")
+subparsers = parser.add_subparsers(dest="subparser_name", required=True)
+# Arguments for "run" subcommand
+run_subparser = subparsers.add_parser("run")
+run_subparser.add_argument("config", default="~/.manager_config", help="Configuration file to execute")
+# Arguments for "validate" subcommand
+validate_subparser = subparsers.add_parser("validate")
+validate_subparser.add_argument("config", default="~/.manager_config", help="Configuration file to execute")
+arguments = parser.parse_args()
+
+
+def resolve_home_dir(path):
+    """
+    Resolve ~ to the HOME environment variable because Python is too stupid to do it for me
+    Inputs:
+    - path: Path to resolve
+    Returns: String of new path or False if the operation failed
+    """
+    if os.environ["HOME"]:
+        return path.replace("~", os.environ["HOME"])
+    else:
+        print("FATAL: Environment variable \"HOME\" is not defined.")
+        return False
 
 
 def validate_config(path):
@@ -40,17 +56,26 @@ def validate_config(path):
     """
     # Ensure config file in question exists
     if not os.path.exists(path):
-        print(f"Error: \"{path}\" does not exist")
-        exit(1)
+        print(f"ERROR: \"{path}\" does not exist")
+        return False
     # Ensure config file in question is a file
     if not os.path.isfile(path):
-        print(f"Error: \"{path}\" is not a file")
-        exit(1)
+        print(f"ERROR: \"{path}\" is not a file")
+        return False
     # Attempt to open the file as YAML
     with open(path, "r") as inputFile:
         yaml_content = yaml.load(inputFile, Loader=yaml.FullLoader)
-    # TODO: Validate contents
-    print(yaml_content)
+    # Ensure required values are present
+    required_values = ["destination", "copy"]
+    for value in required_values:
+        if not value in yaml_content:
+            print(f"FATAL: Required value \"{value}\" not found in configuration {path}")
+            return False
+    # Ensure all copy operations have a destination
+    for operation in yaml_content["copy"]:
+        if not yaml_content["copy"][operation]:
+            print(f"FATAL: All \"copy\" actions must have a source and destination")
+            return False
     return True
 
 
@@ -64,16 +89,60 @@ def clone_file(src, dest):
     """
     # Ensure the source path exists
     if not os.path.exists(src):
-        print(f"Source file does not exist {src} -> {dest}")
-        exit(1)
+        print(f"ERROR: Source file does not exist {src} -> {dest}")
+        return False
     # Create the destination path if needed
-    # TODO: This code is cludgy. Fix it.
-    if not os.path.exists(os.path.dirname(os.path.realpath(dest))):
-        os.makedirs(os.path.dirname(os.path.realpath(dest)))
+    destination_path = resolve_home_dir(os.path.dirname(
+            os.path.realpath(dest)
+    ))
+    if not os.path.exists(destination_path):
+        os.makedirs(destination_path)
     # Copy the file contents
     with open(src, "rb") as source_file:
         with open(dest, "wb") as dest_file:
             dest_file.write(
                 source_file.read()
             )
+    print(f"Copied: {src} -> {dest}")
 
+
+def execute_config(path):
+    """
+    Execute a given config file
+    Arguments:
+    - path: Path to configuration file to execute
+    Returns: None
+    """
+    if not validate_config(path):
+        # Configuration file failed to validate
+        exit(1)
+    with open(path, "r") as inputFile:
+        yaml_content = yaml.load(inputFile, Loader=yaml.FullLoader)
+    # Create destination path if needed
+    destination_path = yaml_content["destination"]
+    if not os.path.exists(destination_path):
+        os.makedirs(destination_path)
+    # Begin copying files
+    for operation in yaml_content["copy"]:
+        status = clone_file(
+            resolve_home_dir(operation), 
+            resolve_home_dir(yaml_content["copy"][operation])
+        )
+        if status is False:
+            # Copy operation failed
+            exit(1)
+    # All files copied successfully
+    return True
+
+
+# Execute provided subcommand
+if arguments.subparser_name == "run":
+    execute_config(arguments.config)
+elif arguments.subparser_name == "validate":
+    if validate_config(arguments.config):
+        exit(0)
+    else:
+        exit(1)
+else:
+    print(f"{arguments.subparser_name} is not a valid command")
+    exit(1)
