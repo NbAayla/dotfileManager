@@ -54,6 +54,7 @@ def validate_config(path):
     - path: string, path to config file to validate
     Returns: bool, True if config file is valid
     """
+    path = resolve_home_dir(path)
     # Ensure config file in question exists
     if not os.path.exists(path):
         print(f"ERROR: \"{path}\" does not exist")
@@ -113,6 +114,7 @@ def execute_config(path):
     - path: Path to configuration file to execute
     Returns: None
     """
+    path = resolve_home_dir(path)
     if not validate_config(path):
         # Configuration file failed to validate
         exit(1)
@@ -126,7 +128,12 @@ def execute_config(path):
     for operation in yaml_content["copy"]:
         status = clone_file(
             resolve_home_dir(operation), 
-            resolve_home_dir(yaml_content["copy"][operation])
+            resolve_home_dir(
+                os.path.join(
+                    destination_path,
+                    yaml_content["copy"][operation]
+                )
+            )
         )
         if status is False:
             # Copy operation failed
