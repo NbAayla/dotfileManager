@@ -18,6 +18,7 @@
 import argparse
 import yaml
 import os
+import sys
 
 
 # Set up argument parsing
@@ -38,12 +39,12 @@ def resolve_home_dir(path):
     Resolve ~ to the HOME environment variable because Python is too stupid to do it for me
     Inputs:
     - path: Path to resolve
-    Returns: String of new path or False if the operation failed
+    Returns: String of new path
     """
     if os.environ["HOME"]:
         return path.replace("~", os.environ["HOME"])
     else:
-        print("FATAL: Environment variable \"HOME\" is not defined.")
+        print("FATAL: Environment variable \"HOME\" is not defined.", file=sys.stderr)
         exit(2)
 
 
@@ -57,11 +58,11 @@ def validate_config(path):
     path = resolve_home_dir(path)
     # Ensure config file in question exists
     if not os.path.exists(path):
-        print(f"ERROR: \"{path}\" does not exist")
+        print(f"ERROR: \"{path}\" does not exist", file=sys.stderr)
         return False
     # Ensure config file in question is a file
     if not os.path.isfile(path):
-        print(f"ERROR: \"{path}\" is not a file")
+        print(f"ERROR: \"{path}\" is not a file", file=sys.stderr)
         return False
     # Attempt to open the file as YAML
     with open(path, "r") as inputFile:
@@ -70,12 +71,12 @@ def validate_config(path):
     required_values = ["destination", "copy"]
     for value in required_values:
         if not value in yaml_content:
-            print(f"FATAL: Required value \"{value}\" not found in configuration {path}")
+            print(f"FATAL: Required value \"{value}\" not found in configuration {path}", file=sys.stderr)
             return False
     # Ensure all copy operations have a destination
     for operation in yaml_content["copy"]:
         if not yaml_content["copy"][operation]:
-            print(f"FATAL: All \"copy\" actions must have a source and destination")
+            print(f"FATAL: All \"copy\" actions must have a source and destination", file=sys.stderr)
             return False
     return True
 
@@ -90,7 +91,7 @@ def clone_file(src, dest):
     """
     # Ensure the source path exists
     if not os.path.exists(src):
-        print(f"ERROR: Source file does not exist {src} -> {dest}")
+        print(f"ERROR: Source file does not exist {src} -> {dest}", file=sys.stderr)
         return False
     # Create the destination path if needed
     destination_path = resolve_home_dir(os.path.dirname(
@@ -153,5 +154,5 @@ elif arguments.subparser_name == "validate":
     else:
         exit(1)
 else:
-    print(f"{arguments.subparser_name} is not a valid command")
+    print(f"{arguments.subparser_name} is not a valid command", file=sys.stderr)
     exit(1)
